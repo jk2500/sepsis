@@ -31,14 +31,26 @@ except ImportError:
 # ---------------------------
 # Active Inference Utilities (copied from earlier design)
 # ---------------------------
-def calculate_logit_variance(pis_k, mus_k):
-    """Calculates logit variance from MDN parameters for a single timestep prediction."""
-    # pis_k: (num_mdn_components)
-    # mus_k: (num_mdn_components)
-    expected_logit = torch.sum(pis_k * mus_k)
-    expected_logit_sq = torch.sum(pis_k * (mus_k.pow(2)))
-    logit_variance = torch.relu(expected_logit_sq - expected_logit.pow(2)) # Ensure non-negative
-    return logit_variance.item()
+def calculate_predictive_entropy(pis_k, mus_k):
+    """Calculates predictive entropy (in bits) from MDN parameters for a binary outcome."""
+    # pis_k: tensor of shape (num_mdn_components), on some device
+    # mus_k: tensor of shape (num_mdn_components), on same device
+    # Assumes mus_k are logits.
+    device = pis_k.device
+    dtype = pis_k.dtype
+
+    probs_k = torch.sigmoid(mus_k)  # Probabilities of sepsis for each component
+    mean_prob = torch.sum(pis_k * probs_k)  # Expected probability of sepsis
+
+    # Clamp mean_prob to avoid log(0) or log(1) issues leading to NaN
+    eps = torch.tensor(1e-7, device=device, dtype=dtype)
+    mean_prob_clamped = torch.clamp(mean_prob, min=eps, max=1.0 - eps)
+
+    # Calculate entropy using log base 2 for bits
+    entropy = - (mean_prob_clamped * torch.log2(mean_prob_clamped) + \
+                 (1.0 - mean_prob_clamped) * torch.log2(1.0 - mean_prob_clamped))
+    
+    return entropy.item()
 
 def simulate_active_feature_acquisition(
     model,
@@ -52,22 +64,28 @@ def simulate_active_feature_acquisition(
     return_results=False # New argument
 ):
     """
-    Simulates observing missing features one by one at a target input timestep
-    and measures the change in uncertainty for the corresponding prediction.
+    Simulates observing missing features one by one using sample-based marginalization
+    and measures the change in predictive entropy (Information Gain) for the corresponding prediction.
     If return_results is True, returns a list of dicts instead of printing details.
     """
     model.eval()
     simulation_outputs = [] # To store results if return_results is True
 
+    # Placeholder for sampling: Use mean, mean+std, mean-std in normalized space
+    # K_SAMPLES_FOR_EXPECTATION = 3
+    # These are normalized values, as the model expects normalized inputs.
+    # 0.0 is mean, 1.0 is approx +1 std, -1.0 is approx -1 std in normalized space.
+    hypothetical_normalized_samples = torch.tensor([0.0, 1.0, -1.0], device=device, dtype=x_patient_seq.dtype)
+
+
     input_timestep_idx = target_prediction_idx # GRU-D output at t corresponds to input at t
 
-    if not (0 <= input_timestep_idx < patient_length -1): # Need at least one step to predict for
-        print(f"  Target prediction index {target_prediction_idx} (input step {input_timestep_idx}) is not valid for patient length {patient_length}. Min length 2 required. Skipping active info seeking.")
+    if not (0 <= input_timestep_idx < patient_length -1): # Need at least one step to predict for (y_next[t] means actual y[t+1])
+        print(f"  Target prediction index {target_prediction_idx} (input step {input_timestep_idx}) is not valid for patient length {patient_length}. Min length 2 required for predicting a future step. Skipping active info seeking.")
         if return_results:
             return []
         return
 
-    # This initial print can stay for both modes, or be conditional if too verbose for batch
     print(f"\n--- Active Information Seeking Simulation (for MDN output at index {target_prediction_idx}) ---")
     print(f"--- Considering inputs at sequence index {input_timestep_idx} to predict y_next[{target_prediction_idx}] ---")
 
@@ -82,25 +100,27 @@ def simulate_active_feature_acquisition(
 
     pis_k_baseline = pis_baseline_all_steps[0, target_prediction_idx, :]
     mus_k_baseline = mus_baseline_all_steps[0, target_prediction_idx, :]
-    baseline_uncertainty = calculate_logit_variance(pis_k_baseline, mus_k_baseline)
     
+    # Calculate baseline mean probability and entropy
     probs_k_baseline = torch.sigmoid(mus_k_baseline)
     mean_prob_baseline = torch.sum(pis_k_baseline * probs_k_baseline).item()
-    # This summary is useful for context even if returning results
+    baseline_entropy = calculate_predictive_entropy(pis_k_baseline, mus_k_baseline)
+    
     print(f"  Baseline P(Sepsis=1) for y_next[{target_prediction_idx}]: {mean_prob_baseline:.4f}")
-    print(f"  Baseline Logit Variance (Uncertainty) for y_next[{target_prediction_idx}]: {baseline_uncertainty:.4f}")
+    print(f"  Baseline Predictive Entropy for y_next[{target_prediction_idx}]: {baseline_entropy:.4f} bits")
 
     missing_feature_indices_at_input_step = torch.where(m_patient_seq[input_timestep_idx, :num_original_features] == 0)[0]
     if include_current_sepsis_label_in_model and m_patient_seq[input_timestep_idx, num_original_features] == 0:
-        missing_feature_indices_at_input_step = torch.cat((missing_feature_indices_at_input_step, torch.tensor([num_original_features], device=missing_feature_indices_at_input_step.device)))
+        # SepsisLabel_t is the last feature if included
+        sepsis_label_model_idx = num_original_features 
+        missing_feature_indices_at_input_step = torch.cat((missing_feature_indices_at_input_step, torch.tensor([sepsis_label_model_idx], device=missing_feature_indices_at_input_step.device)))
 
     if missing_feature_indices_at_input_step.numel() == 0:
-        print("  No missing features at input timestep {input_timestep_idx} to simulate acquiring.")
+        print(f"  No missing features at input timestep {input_timestep_idx} to simulate acquiring.")
         if return_results:
             return []
         return
     
-    # This print can also be conditional if too verbose for batch mode
     print(f"  Missing features at input timestep {input_timestep_idx} (model input indices): {missing_feature_indices_at_input_step.tolist()}")
 
     for feature_model_idx_tensor in missing_feature_indices_at_input_step:
@@ -115,39 +135,50 @@ def simulate_active_feature_acquisition(
                  print(f"    Warning: Could not map model feature index {feature_model_idx} to a name. Skipping.")
             continue
         
-        x_mod_seq = x_patient_seq.clone()
-        m_mod_seq = m_patient_seq.clone()
-        delta_mod_seq = delta_patient_seq.clone()
-
-        x_mod_seq[input_timestep_idx, feature_model_idx] = 0.0
-        m_mod_seq[input_timestep_idx, feature_model_idx] = 1.0
-        delta_mod_seq[input_timestep_idx, feature_model_idx] = 0.0
-
-        x_mod_batch = x_mod_seq.unsqueeze(0).to(device)
-        m_mod_batch = m_mod_seq.unsqueeze(0).to(device)
-        delta_mod_batch = delta_mod_seq.unsqueeze(0).to(device)
-
-        with torch.no_grad():
-            pis_modified_all_steps, mus_modified_all_steps = model(
-                x_mod_batch, m_mod_batch, delta_mod_batch, x_last_batch, lengths_batch
-            )
+        sum_entropy_after_acquisition = 0.0
         
-        pis_k_modified = pis_modified_all_steps[0, target_prediction_idx, :]
-        mus_k_modified = mus_modified_all_steps[0, target_prediction_idx, :]
-        modified_uncertainty = calculate_logit_variance(pis_k_modified, mus_k_modified)
-        uncertainty_reduction = baseline_uncertainty - modified_uncertainty
+        for sample_val_tensor in hypothetical_normalized_samples:
+            sample_val = sample_val_tensor.item()
+
+            x_mod_seq = x_patient_seq.clone()
+            m_mod_seq = m_patient_seq.clone()
+            delta_mod_seq = delta_patient_seq.clone() # Ensure delta is fresh for each modification
+
+            # Impute the hypothetical sampled value
+            x_mod_seq[input_timestep_idx, feature_model_idx] = sample_val 
+            m_mod_seq[input_timestep_idx, feature_model_idx] = 1.0      # Mark as observed
+            delta_mod_seq[input_timestep_idx, feature_model_idx] = 0.0  # Time since last observation is 0
+
+            x_mod_batch = x_mod_seq.unsqueeze(0).to(device)
+            m_mod_batch = m_mod_seq.unsqueeze(0).to(device)
+            delta_mod_batch = delta_mod_seq.unsqueeze(0).to(device)
+            # x_last_batch and lengths_batch remain the same as baseline call
+
+            with torch.no_grad():
+                pis_modified_all_steps, mus_modified_all_steps = model(
+                    x_mod_batch, m_mod_batch, delta_mod_batch, x_last_batch, lengths_batch
+                )
+            
+            pis_k_modified = pis_modified_all_steps[0, target_prediction_idx, :]
+            mus_k_modified = mus_modified_all_steps[0, target_prediction_idx, :]
+            
+            entropy_for_sample = calculate_predictive_entropy(pis_k_modified, mus_k_modified)
+            sum_entropy_after_acquisition += entropy_for_sample
+        
+        expected_entropy_after_acquisition = sum_entropy_after_acquisition / len(hypothetical_normalized_samples)
+        information_gain = baseline_entropy - expected_entropy_after_acquisition
 
         if return_results:
             simulation_outputs.append({
                 "feature_name": feature_name,
                 "feature_model_idx": feature_model_idx,
-                "baseline_uncertainty_at_timestep": baseline_uncertainty,
-                "modified_uncertainty_after_acquiring_feature": modified_uncertainty,
-                "uncertainty_reduction": uncertainty_reduction
+                "baseline_entropy_at_timestep": baseline_entropy,
+                "expected_entropy_after_acquiring_feature": expected_entropy_after_acquisition,
+                "information_gain": information_gain
             })
         else:
-            print(f"    If '{feature_name}' (model_idx {feature_model_idx}) was observed (imputed with mean):")
-            print(f"      New Uncertainty: {modified_uncertainty:.4f}, Reduction: {uncertainty_reduction:.4f}")
+            print(f"    If '{feature_name}' (model_idx {feature_model_idx}) was acquired (simulated with {len(hypothetical_normalized_samples)} samples):")
+            print(f"      Expected Entropy After Acquisition: {expected_entropy_after_acquisition:.4f} bits, Information Gain: {information_gain:.4f} bits")
     
     if not return_results:
         print("--- End of Active Information Seeking Simulation ---")
