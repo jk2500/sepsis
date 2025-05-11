@@ -642,14 +642,14 @@ def main():
     train_dataset = SepsisDataset(train_files, mean_stats, std_stats, args.max_seq_len, args.include_current_sepsis_label, 
                                   cache_dir=cache_dir_path, dataset_type="train")
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, collate_fn=collate_fn, 
-                              num_workers=min(2, os.cpu_count() or 1), pin_memory=True if DEVICE.type == 'cuda' else False)
+                              num_workers=min(4, os.cpu_count() or 1), pin_memory=True if DEVICE.type == 'cuda' else False)
     
     val_loader = None
     if val_files:
         val_dataset = SepsisDataset(val_files, mean_stats, std_stats, args.max_seq_len, args.include_current_sepsis_label, 
                                     cache_dir=cache_dir_path, dataset_type="val")
         val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn,
-                                num_workers=min(2, os.cpu_count() or 1), pin_memory=True if DEVICE.type == 'cuda' else False)
+                                num_workers=min(4, os.cpu_count() or 1), pin_memory=True if DEVICE.type == 'cuda' else False)
 
     num_model_input_features = len(FEATURE_COLUMNS)
     if args.include_current_sepsis_label:

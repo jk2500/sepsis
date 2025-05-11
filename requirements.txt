@@ -1,0 +1,21 @@
+# Core scientific packages
+numpy>=1.19.0
+pandas>=1.0.0
+scikit-learn>=0.24.0
+scipy>=1.6.0
+
+# Deep learning framework
+torch>=1.9.0
+
+# Visualization and plotting
+matplotlib>=3.3.0
+umap-learn>=0.5.1
+tensorboard>=2.4.0
+
+# Other utilities
+tqdm>=4.50.0
+hashlib-blake3>=0.2.0  # Used for caching in sepsis_predictor_gru_d
+
+# Optional (comment out if not needed)
+# For accelerated tensor operations
+# cuda-python>=11.6  # Only if using CUDA 
