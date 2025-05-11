@@ -1,0 +1,78 @@
+
+Processing 20336 files for combined analysis...
+(The following columns will be dropped from the FEATURE FREQUENCY part of the analysis: Unit1, Unit2, HospAdmTime, ICULOS, Age, Gender, SepsisLabel)
+
+Analyzing 20336 files in the ALL PROCESSED FILES (SINGLE PASS) cohort using multiple threads...
+Submitted 20336 files for processing to 10 worker threads for cohort 'ALL PROCESSED FILES (SINGLE PASS)'.
+Cohort 'ALL PROCESSED FILES (SINGLE PASS)': Processed 2033/20336 files...
+Cohort 'ALL PROCESSED FILES (SINGLE PASS)': Processed 4066/20336 files...
+Cohort 'ALL PROCESSED FILES (SINGLE PASS)': Processed 6099/20336 files...
+Cohort 'ALL PROCESSED FILES (SINGLE PASS)': Processed 8132/20336 files...
+Cohort 'ALL PROCESSED FILES (SINGLE PASS)': Processed 10165/20336 files...
+Cohort 'ALL PROCESSED FILES (SINGLE PASS)': Processed 12198/20336 files...
+Cohort 'ALL PROCESSED FILES (SINGLE PASS)': Processed 14231/20336 files...
+Cohort 'ALL PROCESSED FILES (SINGLE PASS)': Processed 16264/20336 files...
+Cohort 'ALL PROCESSED FILES (SINGLE PASS)': Processed 18297/20336 files...
+Cohort 'ALL PROCESSED FILES (SINGLE PASS)': Processed 20330/20336 files...
+Cohort 'ALL PROCESSED FILES (SINGLE PASS)': Processed 20336/20336 files...
+
+[1m===== FEATURE RECORDING FREQUENCY ANALYSIS: ALL PROCESSED FILES (SINGLE PASS) COHORT =====[0m
+[1mBased on analysis of 20336 patient files[0m
+Frequency = percentage of time points where the feature has a value
+
+[1mRANK  FEATURE                   FREQUENCY (%)   AVAILABILITY   [0m
+------------------------------------------------------------
+
+[1m[94mVITAL SIGNS[0m
+------------------------------------------------------------
+1     HR                        [92m 91.7%[0m      High           
+2     Resp                      [92m 89.6%[0m      High           
+3     MAP                       [92m 89.1%[0m      High           
+4     O2Sat                     [92m 87.3%[0m      High           
+5     SBP                       [92m 84.6%[0m      High           
+6     DBP                       [93m 49.5%[0m      Medium         
+7     Temp                      [91m 34.0%[0m      Low            
+8     EtCO2                     [0m  0.0%[0m      None           
+
+[1m[94mLABORATORY TESTS[0m
+------------------------------------------------------------
+1     FiO2                      [91m 13.1%[0m      Low            
+2     Glucose                   [91m 12.6%[0m      Low            
+3     Hct                       [91m 12.1%[0m      Low            
+4     pH                        [91m 11.4%[0m      Low            
+5     Potassium                 [91m 11.0%[0m      Low            
+6     BaseExcess                [91m 10.3%[0m      Low            
+7     Hgb                       [91m  9.0%[0m      Low            
+8     PaCO2                     [91m  8.6%[0m      Low            
+9     Chloride                  [91m  8.5%[0m      Low            
+10    BUN                       [91m  8.3%[0m      Low            
+11    HCO3                      [91m  8.2%[0m      Low            
+12    Magnesium                 [91m  7.7%[0m      Low            
+13    WBC                       [91m  7.7%[0m      Low            
+14    Creatinine                [91m  6.7%[0m      Low            
+15    Platelets                 [91m  6.6%[0m      Low            
+16    SaO2                      [91m  5.1%[0m      Low            
+17    Phosphate                 [91m  4.9%[0m      Low            
+18    Calcium                   [91m  4.9%[0m      Low            
+19    PTT                       [91m  4.8%[0m      Low            
+20    Lactate                   [91m  3.4%[0m      Low            
+21    AST                       [91m  1.5%[0m      Low            
+22    Alkalinephos              [91m  1.4%[0m      Low            
+23    Bilirubin_total           [91m  1.2%[0m      Low            
+24    Fibrinogen                [91m  0.7%[0m      Low            
+25    Bilirubin_direct          [91m  0.1%[0m      Low            
+26    TroponinI                 [91m  0.1%[0m      Low            
+
+[1mSUMMARY FOR ALL PROCESSED FILES (SINGLE PASS) COHORT:[0m
+High availability features (≥80%): 5
+Medium availability features (40-79%): 1
+Low availability features (<40%): 27
+Unavailable features (0%): 1
+
+
+[1m===== AVERAGE SEPSIS DURATION (from single pass analysis) =====[0m
+[1mBased on the same 20336 patient files processed for feature frequencies.[0m
+Total sepsis cases identified: 1790
+Number of these sepsis patients with SepsisLabel=1 entries (contributing to duration): 1790
+Total hours with SepsisLabel=1 across these 1790 patients: 17136 hours
+[1mAverage SepsisLabel=1 duration for patients with sepsis entries: 9.57 hours[0m

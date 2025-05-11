@@ -1,0 +1,110 @@
+Finding PSV files...
+Found 20336 PSV files to process.
+Loading and concatenating data from files (this may take a while)...
+Submitted 20336 files for loading to 10 worker threads.
+File loading progress: 1016/20336 futures completed...
+File loading progress: 2032/20336 futures completed...
+File loading progress: 3048/20336 futures completed...
+File loading progress: 4064/20336 futures completed...
+File loading progress: 5080/20336 futures completed...
+File loading progress: 6096/20336 futures completed...
+File loading progress: 7112/20336 futures completed...
+File loading progress: 8128/20336 futures completed...
+File loading progress: 9144/20336 futures completed...
+File loading progress: 10160/20336 futures completed...
+File loading progress: 11176/20336 futures completed...
+File loading progress: 12192/20336 futures completed...
+File loading progress: 13208/20336 futures completed...
+File loading progress: 14224/20336 futures completed...
+File loading progress: 15240/20336 futures completed...
+File loading progress: 16256/20336 futures completed...
+File loading progress: 17272/20336 futures completed...
+File loading progress: 18288/20336 futures completed...
+File loading progress: 19304/20336 futures completed...
+File loading progress: 20320/20336 futures completed...
+File loading progress: 20336/20336 futures completed...
+Concatenated data shape: (790215, 41)
+Preparing target variable and identifying features...
+Found 36 features to analyze pairwise.
+
+Calculating Mutual Information for each feature (pairwise complete case)...
+  Processing feature 1/36: HR
+  Processing feature 2/36: O2Sat
+  Processing feature 3/36: Temp
+  Processing feature 4/36: SBP
+  Processing feature 5/36: MAP
+  Processing feature 6/36: DBP
+  Processing feature 7/36: Resp
+  Processing feature 8/36: EtCO2
+    Skipping 'EtCO2': Too few non-missing values (0) after filtering.
+  Processing feature 9/36: BaseExcess
+  Processing feature 10/36: HCO3
+  Processing feature 11/36: FiO2
+  Processing feature 12/36: pH
+  Processing feature 13/36: PaCO2
+  Processing feature 14/36: SaO2
+  Processing feature 15/36: AST
+  Processing feature 16/36: BUN
+  Processing feature 17/36: Alkalinephos
+  Processing feature 18/36: Calcium
+  Processing feature 19/36: Chloride
+  Processing feature 20/36: Creatinine
+  Processing feature 21/36: Bilirubin_direct
+  Processing feature 22/36: Glucose
+  Processing feature 23/36: Lactate
+  Processing feature 24/36: Magnesium
+  Processing feature 25/36: Phosphate
+  Processing feature 26/36: Potassium
+  Processing feature 27/36: Bilirubin_total
+  Processing feature 28/36: TroponinI
+  Processing feature 29/36: Hct
+  Processing feature 30/36: Hgb
+  Processing feature 31/36: PTT
+  Processing feature 32/36: WBC
+  Processing feature 33/36: Fibrinogen
+  Processing feature 34/36: Platelets
+  Processing feature 35/36: Age
+  Processing feature 36/36: Gender
+
+===== MUTUAL INFORMATION SCORES (Pairwise Complete Case) =====
+(Higher score indicates more information shared with SepsisLabel)
+(MI calculated for each feature using only its non-missing rows)
+TroponinI                     : 0.0030967108361097152
+Bilirubin_direct              : 0.001929964691773093
+BUN                           : 0.0015384036176899415
+Temp                          : 0.0014852701586852979
+Bilirubin_total               : 0.0012248955314797007
+Fibrinogen                    : 0.001220263499549467
+Resp                          : 0.0012094902145054192
+BaseExcess                    : 0.0012050920552666503
+Creatinine                    : 0.001202916417697198
+HR                            : 0.0010174786307823348
+HCO3                          : 0.00078316818929558
+pH                            : 0.0006441467395212584
+PTT                           : 0.0006157551885630393
+AST                           : 0.000609080341001992
+SaO2                          : 0.000529163991029263
+Alkalinephos                  : 0.0005272238541945556
+Platelets                     : 0.0005246259617615011
+WBC                           : 0.0005241503001991062
+PaCO2                         : 0.0003537459213004031
+Hgb                           : 0.0003421054906873333
+FiO2                          : 0.00024547366827190956
+Chloride                      : 0.0002339243789592771
+Lactate                       : 0.00022972030196076465
+Calcium                       : 0.0002158972024268388
+Potassium                     : 0.00020572970018525177
+Phosphate                     : 0.00012894715357526093
+SBP                           : 0.00012717900046668382
+Hct                           : 0.0001233296321551773
+O2Sat                         : 7.725422442468252e-05
+Glucose                       : 6.71618582298375e-05
+MAP                           : 5.0776674133022615e-05
+DBP                           : 4.9954110210328334e-05
+Magnesium                     : 2.645698713118344e-05
+Age                           : 2.3653741797018124e-06
+Gender                        : 0.0
+EtCO2                         : NaN
+
+Note: Features were discretized into up to 5 bins using values present for each feature.
+Features with too few samples or unique values after filtering non-missing entries may have NaN or 0 scores.

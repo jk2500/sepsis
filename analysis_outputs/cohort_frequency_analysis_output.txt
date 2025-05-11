@@ -1,0 +1,168 @@
+Analyzing features. Dropping from frequency reports: Unit1, Unit2, HospAdmTime, ICULOS, Age, Gender, SepsisLabel
+
+Processing 20336 files from ./physionet.org/files/challenge-2019/1.0.0/training/training_setA/ for single-pass cohort analysis using multiple threads...
+Submitted 20336 files for processing to 10 worker threads.
+Cohort Analysis: Processed 2033/20336 files...
+Cohort Analysis: Processed 4066/20336 files...
+Cohort Analysis: Processed 6099/20336 files...
+Cohort Analysis: Processed 8132/20336 files...
+Cohort Analysis: Processed 10165/20336 files...
+Cohort Analysis: Processed 12198/20336 files...
+Cohort Analysis: Processed 14231/20336 files...
+Cohort Analysis: Processed 16264/20336 files...
+Cohort Analysis: Processed 18297/20336 files...
+Cohort Analysis: Processed 20330/20336 files...
+Cohort Analysis: Processed 20336/20336 files...
+
+Found 1790 sepsis patient files and 18546 non-sepsis patient files.
+
+[1m===== FEATURE RECORDING FREQUENCY ANALYSIS: SEPSIS COHORT =====[0m
+[1mBased on analysis of 1790 patient files[0m
+Frequency = percentage of time points where the feature has a value
+
+[1mRANK  FEATURE                   FREQUENCY (%)   AVAILABILITY   [0m
+------------------------------------------------------------
+
+[1m[94mVITAL SIGNS[0m
+------------------------------------------------------------
+1     HR                        [92m 92.6%[0m      High           
+2     Resp                      [92m 91.3%[0m      High           
+3     MAP                       [92m 91.0%[0m      High           
+4     O2Sat                     [92m 89.8%[0m      High           
+5     SBP                       [92m 80.7%[0m      High           
+6     DBP                       [93m 56.2%[0m      Medium         
+7     Temp                      [91m 32.6%[0m      Low            
+8     EtCO2                     [0m  0.0%[0m      None           
+
+[1m[94mLABORATORY TESTS[0m
+------------------------------------------------------------
+1     FiO2                      [91m 23.1%[0m      Low            
+2     pH                        [91m 16.0%[0m      Low            
+3     BaseExcess                [91m 15.5%[0m      Low            
+4     Hct                       [91m 13.3%[0m      Low            
+5     Potassium                 [91m 12.9%[0m      Low            
+6     Glucose                   [91m 12.6%[0m      Low            
+7     PaCO2                     [91m 12.5%[0m      Low            
+8     Hgb                       [91m 10.5%[0m      Low            
+9     Chloride                  [91m 10.4%[0m      Low            
+10    BUN                       [91m 10.3%[0m      Low            
+11    HCO3                      [91m 10.2%[0m      Low            
+12    Magnesium                 [91m 10.2%[0m      Low            
+13    WBC                       [91m  9.2%[0m      Low            
+14    Creatinine                [91m  7.9%[0m      Low            
+15    Lactate                   [91m  7.7%[0m      Low            
+16    Platelets                 [91m  7.5%[0m      Low            
+17    Phosphate                 [91m  6.9%[0m      Low            
+18    Calcium                   [91m  6.8%[0m      Low            
+19    PTT                       [91m  6.3%[0m      Low            
+20    SaO2                      [91m  5.6%[0m      Low            
+21    AST                       [91m  2.9%[0m      Low            
+22    Alkalinephos              [91m  2.9%[0m      Low            
+23    Bilirubin_total           [91m  2.2%[0m      Low            
+24    Fibrinogen                [91m  1.3%[0m      Low            
+25    Bilirubin_direct          [91m  0.3%[0m      Low            
+26    TroponinI                 [91m  0.1%[0m      Low            
+
+[1mSUMMARY FOR SEPSIS COHORT:[0m
+High availability features (≥80%): 5
+Medium availability features (40-79%): 1
+Low availability features (<40%): 27
+Unavailable features (0%): 1
+
+[1m===== FEATURE RECORDING FREQUENCY ANALYSIS: NON-SEPSIS COHORT =====[0m
+[1mBased on analysis of 18546 patient files[0m
+Frequency = percentage of time points where the feature has a value
+
+[1mRANK  FEATURE                   FREQUENCY (%)   AVAILABILITY   [0m
+------------------------------------------------------------
+
+[1m[94mVITAL SIGNS[0m
+------------------------------------------------------------
+1     HR                        [92m 91.7%[0m      High           
+2     Resp                      [92m 89.4%[0m      High           
+3     MAP                       [92m 88.9%[0m      High           
+4     O2Sat                     [92m 87.1%[0m      High           
+5     SBP                       [92m 84.9%[0m      High           
+6     DBP                       [93m 48.8%[0m      Medium         
+7     Temp                      [91m 34.1%[0m      Low            
+8     EtCO2                     [0m  0.0%[0m      None           
+
+[1m[94mLABORATORY TESTS[0m
+------------------------------------------------------------
+1     Glucose                   [91m 12.6%[0m      Low            
+2     FiO2                      [91m 12.1%[0m      Low            
+3     Hct                       [91m 12.0%[0m      Low            
+4     pH                        [91m 11.0%[0m      Low            
+5     Potassium                 [91m 10.8%[0m      Low            
+6     BaseExcess                [91m  9.8%[0m      Low            
+7     Hgb                       [91m  8.9%[0m      Low            
+8     Chloride                  [91m  8.3%[0m      Low            
+9     PaCO2                     [91m  8.2%[0m      Low            
+10    BUN                       [91m  8.1%[0m      Low            
+11    HCO3                      [91m  8.0%[0m      Low            
+12    WBC                       [91m  7.5%[0m      Low            
+13    Magnesium                 [91m  7.5%[0m      Low            
+14    Creatinine                [91m  6.6%[0m      Low            
+15    Platelets                 [91m  6.6%[0m      Low            
+16    SaO2                      [91m  5.0%[0m      Low            
+17    Phosphate                 [91m  4.8%[0m      Low            
+18    PTT                       [91m  4.7%[0m      Low            
+19    Calcium                   [91m  4.7%[0m      Low            
+20    Lactate                   [91m  2.9%[0m      Low            
+21    AST                       [91m  1.3%[0m      Low            
+22    Alkalinephos              [91m  1.3%[0m      Low            
+23    Bilirubin_total           [91m  1.1%[0m      Low            
+24    Fibrinogen                [91m  0.7%[0m      Low            
+25    Bilirubin_direct          [91m  0.1%[0m      Low            
+26    TroponinI                 [91m  0.1%[0m      Low            
+
+[1mSUMMARY FOR NON-SEPSIS COHORT:[0m
+High availability features (≥80%): 5
+Medium availability features (40-79%): 1
+Low availability features (<40%): 27
+Unavailable features (0%): 1
+
+[1m===== COMPARISON: SEPSIS vs NON-SEPSIS COHORTS (Sorted by Absolute Difference within Category) =====[0m
+[1mSepsis Cohort: 1790 patient files | Non-Sepsis Cohort: 18546 patient files[0m
+
+[1m[94mVITAL SIGNS[0m
+[1mFEATURE                   SEPSIS (%)      NON-SEPSIS (%)  DIFFERENCE (%) [0m
+----------------------------------------------------------------------
+DBP                        56.2%           48.8%          [92m +7.4%[0m     
+SBP                        80.7%           84.9%          [91m -4.3%[0m     
+O2Sat                      89.8%           87.1%          [92m +2.7%[0m     
+MAP                        91.0%           88.9%          [92m +2.1%[0m     
+Resp                       91.3%           89.4%          [92m +1.9%[0m     
+Temp                       32.6%           34.1%          [91m -1.6%[0m     
+HR                         92.6%           91.7%          [92m +1.0%[0m     
+EtCO2                       0.0%            0.0%           +0.0%[0m     
+
+[1m[94mLABORATORY TESTS[0m
+[1mFEATURE                   SEPSIS (%)      NON-SEPSIS (%)  DIFFERENCE (%) [0m
+----------------------------------------------------------------------
+FiO2                       23.1%           12.1%          [92m+11.0%[0m     
+BaseExcess                 15.5%            9.8%          [92m +5.7%[0m     
+pH                         16.0%           11.0%          [92m +5.1%[0m     
+Lactate                     7.7%            2.9%          [92m +4.7%[0m     
+PaCO2                      12.5%            8.2%          [92m +4.3%[0m     
+Magnesium                  10.2%            7.5%          [92m +2.7%[0m     
+HCO3                       10.2%            8.0%          [92m +2.2%[0m     
+BUN                        10.3%            8.1%          [92m +2.2%[0m     
+Chloride                   10.4%            8.3%          [92m +2.2%[0m     
+Potassium                  12.9%           10.8%          [92m +2.2%[0m     
+Phosphate                   6.9%            4.8%          [92m +2.1%[0m     
+Calcium                     6.8%            4.7%          [92m +2.1%[0m     
+Hgb                        10.5%            8.9%          [92m +1.7%[0m     
+WBC                         9.2%            7.5%          [92m +1.7%[0m     
+Alkalinephos                2.9%            1.3%          [92m +1.6%[0m     
+AST                         2.9%            1.3%          [92m +1.6%[0m     
+PTT                         6.3%            4.7%          [92m +1.6%[0m     
+Hct                        13.3%           12.0%          [92m +1.3%[0m     
+Creatinine                  7.9%            6.6%          [92m +1.3%[0m     
+Bilirubin_total             2.2%            1.1%          [92m +1.1%[0m     
+Platelets                   7.5%            6.6%          [92m +0.9%[0m     
+Fibrinogen                  1.3%            0.7%          [92m +0.6%[0m     
+SaO2                        5.6%            5.0%          [92m +0.6%[0m     
+Bilirubin_direct            0.3%            0.1%          [92m +0.1%[0m     
+TroponinI                   0.1%            0.1%          [91m -0.1%[0m     
+Glucose                    12.6%           12.6%          [92m +0.0%[0m     
