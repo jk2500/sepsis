@@ -126,16 +126,16 @@ def prepare_vae_dataset_from_patient_files(
             lengths_batch = torch.tensor([seq_len], device=device, dtype=torch.long)
 
             with torch.no_grad():
-                # We need raw GRU output (hidden states from all layers or last layer)
-                # Modify SepsisGRUDMDN to return hidden states if it doesn't already
-                # For now, assume `grud_model.get_hidden_states(...)` exists or adapt its forward
-                # The `gru_d` in SepsisGRUDMDN outputs (output, hidden), where output is from all timesteps.
-                # SepsisGRUDMDN.forward calls self.gru_d(x, m, delta, x_last_obsv_norm, lengths)
-                # Let's get the direct output of self.gru_d
-                grud_output_raw, _ = grud_model.gru_d(x_grud_batch, m_grud_batch, delta_grud_batch, x_last_grud_batch, lengths_batch)
-                # grud_output_raw shape: (batch_size, seq_len, hidden_size)
-            
-            h_grud_sequence = grud_output_raw.squeeze(0) # (seq_len, hidden_size)
+                try:
+                    # Change back to gru_d_layer based on current error and previous model_MDN.py inspection
+                    grud_output_raw, _ = grud_model.grud(x_grud_batch, m_grud_batch, delta_grud_batch, x_last_grud_batch, lengths_batch)
+                    
+                    patient_hidden_states = grud_output_raw.squeeze(0) # (seq_len, grud_hidden_dim)
+                except Exception as e_grud:
+                    print(f"Error during GRU-D forward pass for file {p_file}: {e_grud}. Skipping.")
+                    continue
+
+            h_grud_sequence = patient_hidden_states
 
             # VAE uses original features (normalized, imputed) and original masks
             x_vae_input_t = torch.from_numpy(x_norm_imputed_zeros_np).to(device)
@@ -191,7 +191,8 @@ def main():
         print(f"Error: GRU-D checkpoint {args.grud_checkpoint_path} not found. Exiting.")
         return
     
-    grud_checkpoint = torch.load(args.grud_checkpoint_path, map_location=DEVICE)
+    grud_checkpoint = torch.load(args.grud_checkpoint_path, map_location=DEVICE, weights_only=False)
+    
     grud_model_args = grud_checkpoint.get('args')
     if not grud_model_args:
         print("Error: GRU-D checkpoint does not contain 'args'. Exiting.")
