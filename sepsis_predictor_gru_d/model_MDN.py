@@ -53,7 +53,7 @@ elif torch.cuda.is_available():
 else:
     DEVICE = torch.device("cpu")
 
-print(f"Using device: {DEVICE}")
+# print(f"Using device: {DEVICE}")
 
 # ---------------------------
 # Feature list (2019 Challenge)
@@ -466,28 +466,28 @@ def train_epoch(model, dataloader, optimizer, device, num_mdn_components,
 
         autocast_enabled = scaler is not None and device.type == 'cuda'
 
-        with torch.cuda.amp.autocast(enabled=autocast_enabled):
-            pis, mus = model(x, m, delta, x_last, lengths)
+        # with torch.cuda.amp.autocast(enabled=autocast_enabled):
+        #     pis, mus = model(x, m, delta, x_last, lengths)
             
-            # Loss mask based on prediction_horizon
-            loss_mask = torch.zeros_like(y_target, dtype=torch.bool, device=device)
-            for i, l_val in enumerate(lengths):
-                if l_val > prediction_horizon: # Valid predictions up to L - 1 - N
-                     num_valid_preds_for_seq = l_val - prediction_horizon
-                     loss_mask[i, :num_valid_preds_for_seq] = True
+        #     # Loss mask based on prediction_horizon
+        #     loss_mask = torch.zeros_like(y_target, dtype=torch.bool, device=device)
+        #     for i, l_val in enumerate(lengths):
+        #         if l_val > prediction_horizon: # Valid predictions up to L - 1 - N
+        #              num_valid_preds_for_seq = l_val - prediction_horizon
+        #              loss_mask[i, :num_valid_preds_for_seq] = True
             
-            if loss_mask.sum() == 0:
-                continue
+        #     if loss_mask.sum() == 0:
+        #         continue
 
-            sample_weights = torch.ones_like(y_target, device=device)
-            if transition_weight > 1.0:
-                # Transition is from y_current (S_t) to y_target (S_{t+N})
-                is_0_to_1_transition = (y_current == 0) & (y_target == 1)
-                sample_weights[is_0_to_1_transition] = transition_weight
+        #     sample_weights = torch.ones_like(y_target, device=device)
+        #     if transition_weight > 1.0:
+        #         # Transition is from y_current (S_t) to y_target (S_{t+N})
+        #         is_0_to_1_transition = (y_current == 0) & (y_target == 1)
+        #         sample_weights[is_0_to_1_transition] = transition_weight
             
-            # Pass y_target to loss
-            nll_per_timestep_weighted = mdn_loss_bernoulli(pis, mus, y_target, sample_weights)
-            loss = nll_per_timestep_weighted[loss_mask].mean()
+        #     # Pass y_target to loss
+        #     nll_per_timestep_weighted = mdn_loss_bernoulli(pis, mus, y_target, sample_weights)
+        #     loss = nll_per_timestep_weighted[loss_mask].mean()
 
         if scaler and device.type == 'cuda':
             scaler.scale(loss).backward()
@@ -523,8 +523,8 @@ def evaluate(model, dataloader, device, prediction_horizon: int): # Added predic
                 x_last.to(device), y_current.to(device), y_target.to(device), lengths.to(device)
             )
 
-            with torch.cuda.amp.autocast(enabled=autocast_enabled_eval):
-                pis, mus = model(x, m, delta, x_last, lengths)
+            # with torch.cuda.amp.autocast(enabled=autocast_enabled_eval):
+            #     pis, mus = model(x, m, delta, x_last, lengths)
             
             # Loss mask based on prediction_horizon
             loss_mask = torch.zeros_like(y_target, dtype=torch.bool, device=device)
