@@ -466,7 +466,7 @@ def train_epoch(model, dataloader, optimizer, device, num_mdn_components,
 
         autocast_enabled = scaler is not None and device.type == 'cuda'
 
-        with torch.cuda.amp.autocast(enabled=autocast_enabled):
+        with torch.amp.autocast(device_type=device.type, enabled=autocast_enabled):
             pis, mus = model(x, m, delta, x_last, lengths)
             
             # Loss mask based on prediction_horizon
@@ -530,7 +530,7 @@ def evaluate(model, dataloader, device, prediction_horizon: int): # Added predic
                 x_last.to(device), y_current.to(device), y_target.to(device), lengths.to(device)
             )
 
-            with torch.cuda.amp.autocast(enabled=autocast_enabled_eval):
+            with torch.amp.autocast(device_type=device.type, enabled=autocast_enabled_eval):
                 pis, mus = model(x, m, delta, x_last, lengths)
             
             # Loss mask based on prediction_horizon
