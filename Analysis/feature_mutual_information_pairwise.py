@@ -56,7 +56,7 @@ def _load_file_for_mi_pairwise(file_path, expected_headers):
 
 # --- Main MI calculation function (Pairwise Complete Case) ---
 def calculate_mutual_information_pairwise():
-    data_directory = './physionet.org/files/challenge-2019/1.0.0/training/training_setA/'
+    data_directory = './physionet.org/files/challenge-2019/1.0.0/training/training_setB/'
     
     cols_to_ignore_as_features = ['Unit1', 'Unit2', 'HospAdmTime', 'ICULOS']
     target_column = 'SepsisLabel'

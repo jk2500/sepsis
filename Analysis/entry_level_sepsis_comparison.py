@@ -85,7 +85,7 @@ def _process_file_for_entry_level_analysis(file_path, features_to_analyze_in_fil
     }
 
 def main():
-    data_directory = './physionet.org/files/challenge-2019/1.0.0/training/training_setA/'
+    data_directory = './physionet.org/files/challenge-2019/1.0.0/training/training_setB/'
     columns_to_drop_from_analysis = ['Unit1', 'Unit2', 'HospAdmTime', 'ICULOS', 'Age', 'Gender']
     
     psv_files = find_psv_files(data_directory, limit=None) 

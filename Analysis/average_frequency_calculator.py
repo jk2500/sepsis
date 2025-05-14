@@ -8,7 +8,7 @@ from sepsis_analysis_utils import (
 )
 
 def main():
-    data_directory = './physionet.org/files/challenge-2019/1.0.0/training/training_setA/'
+    data_directory = './physionet.org/files/challenge-2019/1.0.0/training/training_setB/'
     
     # Define columns to drop from the frequency analysis part
     # SepsisLabel is dropped for frequency reporting but still used internally by analyze_cohort for sepsis stats

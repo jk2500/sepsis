@@ -13,7 +13,7 @@ from sepsis_analysis_utils import (
 )
 
 def main():
-    data_directory = './physionet.org/files/challenge-2019/1.0.0/training/training_setA/'
+    data_directory = './physionet.org/files/challenge-2019/1.0.0/training/training_setB/'
 
     # Define columns to consistently drop from FEATURE FREQUENCY ANALYSIS in both cohorts
     # SepsisLabel will also be dropped from feature frequency analysis, handled below.
