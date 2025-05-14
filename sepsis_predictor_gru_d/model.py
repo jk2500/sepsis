@@ -320,62 +320,72 @@ class SepsisGRUDRNN(nn.Module):
 # ---------------------------
 # Training and Evaluation
 # ---------------------------
-def train_epoch(model, dataloader, optimizer, criterion_unreduced, device, transition_weight: float):
+def train_epoch(model, dataloader, optimizer, device, num_mdn_components, 
+                transition_weight: float, prediction_horizon: int, scaler=None):
     model.train()
-    total_loss = 0.0
-    num_valid_timesteps_for_loss_avg = 0 # Count of elements contributing to loss
+    epoch_total_weighted_nll_sum = 0.0  # To store sum of NLL * sample_weight
+    epoch_total_valid_timesteps = 0     # To count valid timesteps for averaging
 
-    # criterion_unreduced should be nn.BCEWithLogitsLoss(reduction='none')
-    
-    for x, m, delta, x_last, y_current, y_next, lengths in dataloader:
-        x, m, delta, x_last, y_current, y_next, lengths = (
+    for x, m, delta, x_last, y_current, y_target, lengths in dataloader:
+        x, m, delta, x_last, y_current, y_target, lengths = (
             x.to(device), m.to(device), delta.to(device), 
-            x_last.to(device), y_current.to(device), y_next.to(device), lengths.to(device)
+            x_last.to(device), y_current.to(device), y_target.to(device), lengths.to(device)
         )
         
-        optimizer.zero_grad()
-        predictions_logits = model(x, m, delta, x_last, lengths) # (batch, seq_len)
-        
-        # Mask for loss calculation: y_next[t] is original y[t+1].
-        # Valid timesteps for loss: 0 to L-2 for original length L.
-        loss_mask = torch.zeros_like(y_next, dtype=torch.bool, device=device)
-        for i, l_val in enumerate(lengths):
-            if l_val > 1: # Need at least 2 timesteps for one y_next label
-                 loss_mask[i, :l_val - 1] = True
-        
-        if loss_mask.sum() == 0: # No valid timesteps in batch
-            continue
+        optimizer.zero_grad(set_to_none=True)
+        autocast_enabled = scaler is not None and device.type == 'cuda'
 
-        # Calculate unreduced loss for all elements
-        unreduced_loss = criterion_unreduced(predictions_logits, y_next) # (batch, seq_len)
+        with torch.cuda.amp.autocast(enabled=autocast_enabled):
+            pis, mus = model(x, m, delta, x_last, lengths)
+            
+            loss_mask = torch.zeros_like(y_target, dtype=torch.bool, device=device)
+            for i, l_val in enumerate(lengths):
+                if l_val > prediction_horizon:
+                    num_valid_preds_for_seq = l_val - prediction_horizon
+                    loss_mask[i, :num_valid_preds_for_seq] = True
 
-        # Create sample_weights tensor
-        sample_weights = torch.ones_like(y_next, device=device) # Default weight is 1
-        
-        if transition_weight > 1.0:
-            # Identify 0 -> 1 transitions
-            # y_current is SepsisLabel_t, y_next is SepsisLabel_{t+1}
-            # We care about y_current[t] == 0 and y_next[t] == 1 (which corresponds to SepsisLabel_{t+1})
-            # The loss_mask applies to predictions and y_next.
-            # So, we need y_current corresponding to the valid y_next elements.
-            is_0_to_1_transition = (y_current == 0) & (y_next == 1)
-            sample_weights[is_0_to_1_transition] = transition_weight
-        
-        # Apply weights and mask to the loss
-        # Only consider elements where loss_mask is True
-        weighted_loss = unreduced_loss * sample_weights
-        final_loss_for_batch = weighted_loss[loss_mask].sum() / loss_mask.sum() # Average over valid timesteps
-        
-        final_loss_for_batch.backward()
-        optimizer.step()
-        
-        # total_loss accumulates sum of losses, num_valid_timesteps counts elements
-        total_loss += weighted_loss[loss_mask].sum().item() 
-        num_valid_timesteps_for_loss_avg += loss_mask.sum().item()
+            if loss_mask.sum() == 0:
+                continue
 
-    return total_loss / num_valid_timesteps_for_loss_avg if num_valid_timesteps_for_loss_avg > 0 else 0.0
+            # 1. Initialize per-sample loss weights. Default weight is 1.0.
+            per_sample_loss_weights = torch.ones_like(y_target, device=device)
 
+            # 2. Identify the 0->1 transitions that are valid for loss calculation.
+            is_0_to_1_transition_for_loss = (y_current == 0) & (y_target == 1) & loss_mask
 
+            # 3. Apply the `transition_weight` to these specific samples.
+            if transition_weight != 1.0: # Optimization: only modify if weight is not default
+                per_sample_loss_weights[is_0_to_1_transition_for_loss] = transition_weight
+
+            # 4. Compute NLL per timestep, now correctly weighted by `per_sample_loss_weights`.
+            # `nll_contributions` will store (NLL_k * weight_k) for each sample k.
+            nll_contributions = mdn_loss_bernoulli(pis, mus, y_target, per_sample_loss_weights)
+
+            # 5. The final loss for this batch is the mean of these weighted NLL contributions,
+            #    considering only the timesteps indicated by loss_mask.
+            loss = nll_contributions[loss_mask].mean()
+            
+        if scaler and device.type == 'cuda':
+            scaler.scale(loss).backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
+        
+        # Accumulate the sum of (NLL * weight) and the count of valid timesteps
+        # This ensures the reported epoch loss is the average *optimized* loss.
+        epoch_total_weighted_nll_sum += nll_contributions[loss_mask].sum().item()
+        epoch_total_valid_timesteps += loss_mask.sum().item()
+
+    if epoch_total_valid_timesteps > 0:
+        return epoch_total_weighted_nll_sum / epoch_total_valid_timesteps
+    else:
+        return 0.0
+    
+    
 def evaluate(model, dataloader, criterion_eval, device, include_current_sepsis_label_arg: bool):
     # criterion_eval should be nn.BCEWithLogitsLoss() with default reduction='mean'
     model.eval()
