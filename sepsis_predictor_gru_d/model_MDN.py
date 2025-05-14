@@ -472,22 +472,29 @@ def train_epoch(model, dataloader, optimizer, device, num_mdn_components,
             # Loss mask based on prediction_horizon
             loss_mask = torch.zeros_like(y_target, dtype=torch.bool, device=device)
             for i, l_val in enumerate(lengths):
-                if l_val > prediction_horizon: # Valid predictions up to L - 1 - N
-                     num_valid_preds_for_seq = l_val - prediction_horizon
-                     loss_mask[i, :num_valid_preds_for_seq] = True
-            
+                if l_val > prediction_horizon:
+                    num_valid_preds_for_seq = l_val - prediction_horizon
+                    loss_mask[i, :num_valid_preds_for_seq] = True
+
             if loss_mask.sum() == 0:
                 continue
 
+            # Compute main sample weights (1 by default)
             sample_weights = torch.ones_like(y_target, device=device)
-            if transition_weight > 1.0:
-                # Transition is from y_current (S_t) to y_target (S_{t+N})
-                is_0_to_1_transition = (y_current == 0) & (y_target == 1)
-                sample_weights[is_0_to_1_transition] = transition_weight
-            
-            # Pass y_target to loss
+
+            # Compute full loss (weighted) — this is the baseline loss
             nll_per_timestep_weighted = mdn_loss_bernoulli(pis, mus, y_target, sample_weights)
-            loss = nll_per_timestep_weighted[loss_mask].mean()
+
+            # Now compute transition-only loss
+            is_0_to_1_transition = (y_current == 0) & (y_target == 1) & loss_mask
+
+            if is_0_to_1_transition.sum() > 0:
+                transition_loss = nll_per_timestep_weighted[is_0_to_1_transition].mean()
+                loss = nll_per_timestep_weighted[loss_mask].mean() + transition_weight * transition_loss
+            else:
+                loss = nll_per_timestep_weighted[loss_mask].mean()
+
+            
 
         if scaler and device.type == 'cuda':
             scaler.scale(loss).backward()
